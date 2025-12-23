@@ -1,0 +1,43 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    - name: Build with Maven
+      run: mvn -B clean package --file devops-demo/pom.xml
+
+    - name: Run tests
+      run: mvn -B test --file devops-demo/pom.xml
+
+    - name: Build Docker image
+      run: |
+        cd devops-demo
+        docker build -t devops-demo:latest .
+
+    # Opsiyonel: Docker Hub'a push etmek istersen uncomment et ve secrets ekle
+    # - name: Login to Docker Hub
+    #   uses: docker/login-action@v3
+    #   with:
+    #     username: ${{ secrets.DOCKER_USERNAME }}
+    #     password: ${{ secrets.DOCKER_PASSWORD }}
+    # - name: Push Docker image
+    #   run: |
+    #     docker tag devops-demo:latest ${{ secrets.DOCKER_USERNAME }}/devops-demo:latest
+    #     docker push ${{ secrets.DOCKER_USERNAME }}/devops-demo:latest
